@@ -12,7 +12,7 @@ def test_model_accuracy_meets_minimum_threshold():
     predictions = model.predict(X_test)
     accuracy = accuracy_score(y_test, predictions)
 
-    assert accuracy >= 0.90
+    assert accuracy >=  1.01
 
 
 def test_model_predictions_are_valid_iris_classes():
