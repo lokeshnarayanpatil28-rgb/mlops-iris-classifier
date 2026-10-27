@@ -1,4 +1,4 @@
-﻿"""Train multiple Iris classifier models and log them with MLflow."""
+"""Train multiple Iris classifier models and log them with MLflow."""
 
 import os
 from pathlib import Path
@@ -103,7 +103,8 @@ def main() -> None:
             mlflow.log_metric("f1_macro", f1)
 
             cm = confusion_matrix(y_test, y_pred)
-            display = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=label_encoder.classes_)
+            display = ConfusionMatrixDisplay(
+                confusion_matrix=cm, display_labels=label_encoder.classes_)
             fig, ax = plt.subplots()
             display.plot(ax=ax)
             ax.set_title(f"Confusion Matrix - {model_name}")

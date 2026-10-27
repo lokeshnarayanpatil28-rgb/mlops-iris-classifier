@@ -14,6 +14,7 @@ FEATURE_COLS = [
     "sepal_to_petal_length_ratio",
 ]
 
+
 def load_dataset(path: str):
     df = pd.read_csv(path)
 
@@ -28,6 +29,7 @@ def load_dataset(path: str):
         random_state=42,
         stratify=y
     )
+
 
 def run_baseline(data_path: str):
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
@@ -82,6 +84,7 @@ def run_baseline(data_path: str):
         )
 
         return cv_scores.mean()
+
 
 if __name__ == "__main__":
     run_baseline("data/processed/iris_features.csv")

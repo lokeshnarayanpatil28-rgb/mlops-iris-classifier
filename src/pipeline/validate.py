@@ -1,37 +1,37 @@
-# src/pipeline/validate.py 
-""" 
-Stage 4: Data Validation. 
-Schema and statistical checks that must pass before data can 
-flow downstream to training. Raises on failure to hard-stop the pipeline. 
-""" 
-import argparse 
-import logging 
-import sys #interacts with the Python system 
- 
-import pandas as pd 
- 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s") 
-logger = logging.getLogger("validate") 
- 
-EXPECTED_COLUMNS = { 
-    "sepal length (cm)", "sepal width (cm)", 
-    "petal length (cm)", "petal width (cm)", 
-    "species", "sepal_area", "petal_area", 
-    "sepal_to_petal_length_ratio", "petal_length_bin", 
-} 
-VALID_SPECIES = {"setosa", "versicolor", "virginica"} 
-RANGE_CHECKS = { 
-    "sepal length (cm)": (3.0, 9.0), 
-    "sepal width (cm)": (1.5, 5.5), 
-    "petal length (cm)": (0.5, 8.0), 
-    "petal width (cm)": (0.05, 3.0), 
-} 
- 
- 
-class DataValidationError(Exception): 
-    pass 
- 
- 
+# src/pipeline/validate.py
+"""
+Stage 4: Data Validation.
+Schema and statistical checks that must pass before data can
+flow downstream to training. Raises on failure to hard-stop the pipeline.
+"""
+import argparse
+import logging
+import sys  # interacts with the Python system
+
+import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("validate")
+
+EXPECTED_COLUMNS = {
+    "sepal length (cm)", "sepal width (cm)",
+    "petal length (cm)", "petal width (cm)",
+    "species", "sepal_area", "petal_area",
+    "sepal_to_petal_length_ratio", "petal_length_bin",
+}
+VALID_SPECIES = {"setosa", "versicolor", "virginica"}
+RANGE_CHECKS = {
+    "sepal length (cm)": (3.0, 9.0),
+    "sepal width (cm)": (1.5, 5.5),
+    "petal length (cm)": (0.5, 8.0),
+    "petal width (cm)": (0.05, 3.0),
+}
+
+
+class DataValidationError(Exception):
+    pass
+
+
 def validate(input_path: str) -> pd.DataFrame:
     df = pd.read_csv(input_path)
     errors = []
@@ -52,14 +52,16 @@ def validate(input_path: str) -> pd.DataFrame:
         for col, (low, high) in RANGE_CHECKS.items():
             out_of_range = df[(df[col] < low) | (df[col] > high)]
             if not out_of_range.empty:
-                errors.append(f"{len(out_of_range)} rows out of expected range for '{col}' ({low}-{high})")
+                errors.append(
+                    f"{len(out_of_range)} rows out of expected range for '{col}' ({low}-{high})")
 
     if errors:
         for e in errors:
             logger.error(e)
         raise DataValidationError(f"Validation failed with {len(errors)} error(s)")
 
-    logger.info("Validation PASSED: %d rows, %d columns, all checks satisfied", len(df), df.shape[1])
+    logger.info("Validation PASSED: %d rows, %d columns, all checks satisfied",
+                len(df), df.shape[1])
     return df
 
 

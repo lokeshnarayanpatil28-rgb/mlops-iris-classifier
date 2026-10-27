@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-import pandas as pd
+
 from sklearn.datasets import load_iris
 
 output_path = Path("data/raw/iris_v1.csv")
