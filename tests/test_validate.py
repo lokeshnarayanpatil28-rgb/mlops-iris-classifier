@@ -1,26 +1,67 @@
-import csv
-import os
-import sys
-import tempfile
-import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import pandas as pd
+import pytest
 
-from src.pipeline.validate import DataValidationError, validate
+from src.pipeline.validate import validate, DataValidationError
 
 
-class ValidateTests(unittest.TestCase):
-    def test_missing_required_columns_raises_validation_error(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            csv_path = os.path.join(tmpdir, "bad.csv")
-            with open(csv_path, "w", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow(["sepal length (cm)", "sepal width (cm)"])
-                writer.writerow([5.1, 3.5])
+@pytest.fixture
+def valid_data():
+    return {
+        "sepal length (cm)": [5.1, 6.0, 6.5],
+        "sepal width (cm)": [3.5, 2.8, 3.0],
+        "petal length (cm)": [1.4, 4.5, 5.5],
+        "petal width (cm)": [0.2, 1.3, 2.0],
+        "species": ["setosa", "versicolor", "virginica"],
+        "sepal_area": [17.85, 16.8, 19.5],
+        "petal_area": [0.28, 5.85, 11.0],
+        "sepal_to_petal_length_ratio": [3.64, 1.33, 1.18],
+        "petal_length_bin": ["short", "medium", "long"],
+    }
 
-            with self.assertRaises(DataValidationError):
-                validate(csv_path)
+
+def write_csv(tmp_path, data):
+    path = tmp_path / "features.csv"
+    pd.DataFrame(data).to_csv(path, index=False)
+    return path
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_validate_accepts_valid_data(tmp_path, valid_data):
+    path = write_csv(tmp_path, valid_data)
+
+    result = validate(str(path))
+
+    assert len(result) == 3
+    assert set(result["species"]) == {"setosa", "versicolor", "virginica"}
+
+
+def test_validate_rejects_missing_required_column(tmp_path, valid_data):
+    valid_data.pop("sepal_area")
+    path = write_csv(tmp_path, valid_data)
+
+    with pytest.raises(DataValidationError, match="Validation failed"):
+        validate(str(path))
+
+
+def test_validate_rejects_null_values(tmp_path, valid_data):
+    valid_data["sepal width (cm)"][0] = None
+    path = write_csv(tmp_path, valid_data)
+
+    with pytest.raises(DataValidationError, match="Validation failed"):
+        validate(str(path))
+
+
+def test_validate_rejects_invalid_species(tmp_path, valid_data):
+    valid_data["species"][0] = "unknown"
+    path = write_csv(tmp_path, valid_data)
+
+    with pytest.raises(DataValidationError, match="Validation failed"):
+        validate(str(path))
+
+
+def test_validate_rejects_out_of_range_measurement(tmp_path, valid_data):
+    valid_data["sepal length (cm)"][0] = 10.0
+    path = write_csv(tmp_path, valid_data)
+
+    with pytest.raises(DataValidationError, match="Validation failed"):
+        validate(str(path))

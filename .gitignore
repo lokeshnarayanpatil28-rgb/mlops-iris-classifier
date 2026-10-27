@@ -157,3 +157,5 @@ confusion_matrix_*.png
 .DS_Store 
 
 Thumbs.db 
+.coverage
+.pytest_cache/
